@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-dns-plugin
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-dns-plugin
+  template:
+    metadata:
+      labels:
+        app: k8s-dns-plugin
+    spec:
+      serviceAccountName: k8s-dns-plugin
+      containers:
+      - name: k8s-dns-plugin
+        image: your-docker-image:latest
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        args: [ "-conf", "/etc/coredns/Corefile" ]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+      volumes:
+      - name: config-volume
+        configMap:
+          name: k8s-dns-plugin-config
+      restartPolicy: Always
